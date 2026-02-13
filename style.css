@@ -464,63 +464,10 @@ button {
   margin-top: 0.25rem;
 }
 
-/* Billing graph on home (billing view) */
-
-.billing-graph-section {
-  margin-bottom: 0.75rem;
-}
-
-.graph-card {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 0.6rem 0.8rem;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
-}
-
-.graph-header {
+.report-export-row {
+  margin-top: 0.5rem;
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 0.4rem;
-}
-
-.graph-header h2 {
-  font-size: 0.95rem;
-}
-
-.graph-period-label {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.graph-bars {
-  display: flex;
-  gap: 0.25rem;
-  align-items: flex-end;
-  min-height: 80px;
-}
-
-.graph-bar {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-}
-
-.graph-bar-rect {
-  width: 100%;
-  border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, #4c7dff, #7c3aed);
-}
-
-.graph-bar-value {
-  font-size: 0.7rem;
-}
-
-.graph-bar-label {
-  font-size: 0.7rem;
-  color: #6b7280;
+  justify-content: flex-end;
 }
 
 /* Modal */
@@ -583,10 +530,6 @@ button {
 
 /* Print styles */
 
-#print-area {
-  display: none;
-}
-
 .print-bill {
   width: 80mm;
   margin: 0 auto;
@@ -631,6 +574,7 @@ button {
   }
 
   #print-area {
+    display: block;
     position: absolute;
     inset: 0;
     padding: 0.5rem;

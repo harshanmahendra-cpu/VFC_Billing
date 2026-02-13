@@ -29,15 +29,6 @@
     <main class="app-main">
       <!-- Billing View -->
       <section id="billing-view" class="view active">
-        <section class="billing-graph-section">
-          <div class="graph-card">
-            <div class="graph-header">
-              <h2>Last 7 Days Sales</h2>
-              <span id="graph-period-label" class="graph-period-label"></span>
-            </div>
-            <div id="billing-graph-bars" class="graph-bars"></div>
-          </div>
-        </section>
         <div class="billing-layout">
           <!-- Tables / Takeaway -->
           <aside class="tables-pane">
@@ -230,6 +221,11 @@
             </thead>
             <tbody id="reports-body"></tbody>
           </table>
+          <div class="report-export-row">
+            <button id="export-report-btn" class="primary-outline-btn">
+              Export Current Report (CSV)
+            </button>
+          </div>
         </section>
       </section>
     </main>

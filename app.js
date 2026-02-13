@@ -832,6 +832,7 @@ function renderAdminTables() {
 
 let currentReportRange = "today";
 let reportSpecificDate = null;
+let lastRenderedReports = [];
 
 function getDateRange(rangeType, specificDate) {
   const now = specificDate ? new Date(specificDate) : new Date();
@@ -867,6 +868,8 @@ function renderReports(rangeType = "today", specificDate = null) {
     const d = new Date(s.dateTime);
     return d >= start && d < end;
   });
+
+  lastRenderedReports = filtered.slice();
 
   const totalAmount = filtered.reduce((sum, s) => sum + s.total, 0);
   const billCount = filtered.length;
@@ -1094,6 +1097,58 @@ function setupReportFilters() {
       renderReports("day", reportSpecificDate);
     });
   }
+
+  const exportBtn = $("#export-report-btn");
+  if (exportBtn) {
+    exportBtn.addEventListener("click", exportCurrentReportCsv);
+  }
+}
+
+function exportCurrentReportCsv() {
+  if (!lastRenderedReports.length) {
+    alert("No data in the current report to export.");
+    return;
+  }
+
+  const rows = [];
+  rows.push(["BillNumber", "DateTime", "Type", "TableOrRef", "Total"]);
+  lastRenderedReports.forEach((rec) => {
+    rows.push([
+      rec.billNumber,
+      new Date(rec.dateTime).toISOString(),
+      rec.type === "table" ? "Table" : "Takeaway",
+      rec.refName,
+      rec.total.toFixed(2),
+    ]);
+  });
+
+  const csvContent = rows
+    .map((cols) =>
+      cols
+        .map((c) => {
+          const s = String(c ?? "");
+          if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+            return `"${s.replace(/"/g, '""')}"`;
+          }
+          return s;
+        })
+        .join(",")
+    )
+    .join("\r\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const now = new Date();
+  const fileName = `velan-report-${now.getFullYear()}-${String(
+    now.getMonth() + 1
+  ).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}.csv`;
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // Billing graph (last 7 days) on billing view
@@ -1124,46 +1179,7 @@ function getSalesByDateLastNDays(days) {
 }
 
 function renderBillingGraph() {
-  const barsContainer = $("#billing-graph-bars");
-  const periodLabel = $("#graph-period-label");
-  if (!barsContainer || !periodLabel) return;
-
-  const data = getSalesByDateLastNDays(7);
-  const max = data.reduce((m, d) => (d.total > m ? d.total : m), 0);
-  barsContainer.innerHTML = "";
-
-  if (!data.length) {
-    periodLabel.textContent = "";
-    return;
-  }
-
-  const first = data[0].date;
-  const last = data[data.length - 1].date;
-  periodLabel.textContent = `${first} to ${last}`;
-
-  data.forEach((d) => {
-    const bar = document.createElement("div");
-    bar.className = "graph-bar";
-
-    const rect = document.createElement("div");
-    rect.className = "graph-bar-rect";
-    const heightPct = max > 0 ? (d.total / max) * 100 : 0;
-    rect.style.height = `${Math.max(heightPct, 5)}%`;
-
-    const value = document.createElement("div");
-    value.className = "graph-bar-value";
-    value.textContent = d.total ? Math.round(d.total).toString() : "";
-
-    const label = document.createElement("div");
-    label.className = "graph-bar-label";
-    // Show day of month only
-    label.textContent = d.date.slice(8, 10);
-
-    bar.appendChild(rect);
-    bar.appendChild(value);
-    bar.appendChild(label);
-    barsContainer.appendChild(bar);
-  });
+  // Graph removed from billing homepage (no-op)
 }
 
 // Init
