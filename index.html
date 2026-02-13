@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Velan Food Court Billing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <h1>Velan Food Court</h1>
+        <span class="tagline">Restaurant Billing &amp; POS</span>
+      </div>
+      <nav class="main-nav">
+        <button class="nav-btn active" data-view="billing-view">Billing</button>
+        <button class="nav-btn" data-view="admin-view">Admin</button>
+        <button class="nav-btn" data-view="reports-view">Reports</button>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <!-- Billing View -->
+      <section id="billing-view" class="view active">
+        <div class="billing-layout">
+          <!-- Tables / Takeaway -->
+          <aside class="tables-pane">
+            <h2>Tables &amp; Takeaway</h2>
+            <div class="tables-list" id="tables-list"></div>
+            <div class="takeaway-box">
+              <button id="takeaway-btn" class="pill-btn">Takeaway</button>
+            </div>
+          </aside>
+
+          <!-- Menu -->
+          <section class="menu-pane">
+            <div class="menu-header">
+              <h2>Menu</h2>
+            </div>
+            <div id="menu-grid" class="menu-grid"></div>
+          </section>
+
+          <!-- Cart / Bill -->
+          <aside class="cart-pane">
+            <div class="cart-header">
+              <h2>Bill</h2>
+              <div class="bill-meta">
+                <span id="bill-context-label">No table selected</span>
+                <span id="bill-number-label">Bill #: -</span>
+              </div>
+            </div>
+            <div id="cart-items" class="cart-items"></div>
+            <div class="cart-summary">
+              <div class="cart-total-row">
+                <span>Total</span>
+                <span id="cart-total">₹0.00</span>
+              </div>
+              <p class="no-tax-note">No tax included in bill.</p>
+              <div class="cart-actions">
+                <button id="clear-cart-btn" class="secondary-btn">Clear Cart</button>
+                <button id="pay-now-btn" class="primary-btn">Pay Now (QR)</button>
+                <button id="print-bill-btn" class="primary-outline-btn">Print Bill</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Admin View -->
+      <section id="admin-view" class="view">
+        <div class="admin-layout">
+          <section class="admin-section">
+            <h2>Manage Menu</h2>
+            <div class="admin-columns">
+              <div class="admin-list">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Active</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-menu-body"></tbody>
+                </table>
+              </div>
+              <div class="admin-form">
+                <h3 id="menu-form-title">Add Menu Item</h3>
+                <form id="menu-form">
+                  <input type="hidden" id="menu-id" />
+                  <div class="form-row">
+                    <label for="menu-name">Name</label>
+                    <input id="menu-name" type="text" required />
+                  </div>
+                  <div class="form-row">
+                    <label for="menu-category">Category</label>
+                    <input id="menu-category" type="text" placeholder="Biryani, Side, Drink..." />
+                  </div>
+                  <div class="form-row">
+                    <label for="menu-price">Price (₹)</label>
+                    <input id="menu-price" type="number" min="0" step="1" required />
+                  </div>
+                  <div class="form-row">
+                    <label for="menu-image-url">Image URL (optional)</label>
+                    <input
+                      id="menu-image-url"
+                      type="text"
+                      placeholder="https://example.com/your-image.jpg"
+                    />
+                    <small>Use an image from any website, or upload a local picture below.</small>
+                  </div>
+                  <div class="form-row">
+                    <label for="menu-image">Image</label>
+                    <input id="menu-image" type="file" accept="image/*" />
+                    <small>Local picture will be stored in this browser only.</small>
+                  </div>
+                  <div class="form-row checkbox-row">
+                    <label>
+                      <input id="menu-active" type="checkbox" checked />
+                      Active
+                    </label>
+                  </div>
+                  <div class="form-actions">
+                    <button type="submit" class="primary-btn">Save Item</button>
+                    <button type="button" id="menu-reset-btn" class="secondary-btn">Clear</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <section class="admin-section">
+            <h2>Manage Tables</h2>
+            <div class="admin-columns">
+              <div class="admin-list">
+                <div class="table-quick-controls">
+                  <label for="table-count">Quick set table count:</label>
+                  <input
+                    id="table-count"
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="e.g. 10"
+                  />
+                  <button id="table-count-btn" class="secondary-btn">Apply</button>
+                </div>
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Active</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-tables-body"></tbody>
+                </table>
+              </div>
+              <div class="admin-form">
+                <h3 id="table-form-title">Add Table</h3>
+                <form id="table-form">
+                  <input type="hidden" id="table-id" />
+                  <div class="form-row">
+                    <label for="table-name">Table Name</label>
+                    <input id="table-name" type="text" placeholder="T1, T2, Family Room..." required />
+                  </div>
+                  <div class="form-row checkbox-row">
+                    <label>
+                      <input id="table-active" type="checkbox" checked />
+                      Active
+                    </label>
+                  </div>
+                  <div class="form-actions">
+                    <button type="submit" class="primary-btn">Save Table</button>
+                    <button type="button" id="table-reset-btn" class="secondary-btn">Clear</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- Reports View -->
+      <section id="reports-view" class="view">
+        <section class="reports-header">
+          <h2>Sales Reports</h2>
+          <div class="report-filters">
+            <button class="pill-btn report-filter-btn active" data-range="today">Today</button>
+            <button class="pill-btn report-filter-btn" data-range="month">This Month</button>
+            <button class="pill-btn report-filter-btn" data-range="year">This Year</button>
+          </div>
+        </section>
+        <section class="reports-summary" id="reports-summary"></section>
+        <section class="reports-table-section">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Bill #</th>
+                <th>Date &amp; Time</th>
+                <th>Type</th>
+                <th>Table/Ref</th>
+                <th>Total (₹)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reports-body"></tbody>
+          </table>
+        </section>
+      </section>
+    </main>
+
+    <!-- Pay Now Modal -->
+    <div id="qr-modal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <h2>Pay Now</h2>
+        <p class="modal-total">Bill Total: <span id="qr-total">₹0.00</span></p>
+        <p>Scan this QR code to pay Velan Food Court.</p>
+        <div class="qr-container">
+          <!-- Replace src with your UPI/bank static QR image -->
+          <img id="qr-image" src="assets/qr-placeholder.png" alt="Payment QR code" />
+        </div>
+        <div class="modal-actions">
+          <button id="qr-paid-btn" class="primary-btn">Payment Received</button>
+          <button id="qr-close-btn" class="secondary-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden print area (only visible in print) -->
+    <div id="print-area">
+      <div class="print-bill">
+        <h1 class="print-title">Velan Food Court</h1>
+        <p id="print-bill-number">Bill #: -</p>
+        <p id="print-bill-date">Date: -</p>
+        <p id="print-bill-context">Table/Type: -</p>
+        <hr />
+        <table class="print-items">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="print-items-body"></tbody>
+        </table>
+        <hr />
+        <p class="print-total">Total: <span id="print-total">₹0.00</span></p>
+        <p class="no-tax-note">No tax included in bill.</p>
+        <p class="print-footer">Thank you for dining at Velan Food Court!</p>
+      </div>
+    </div>
+
+    <!-- Previous Bill Detail Modal -->
+    <div id="report-detail-modal" class="modal hidden">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <h2>Bill Details</h2>
+        <p id="detail-bill-number">Bill #: -</p>
+        <p id="detail-bill-date">Date: -</p>
+        <p id="detail-bill-context">Table/Type: -</p>
+        <table class="print-items">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="detail-items-body"></tbody>
+        </table>
+        <p class="print-total">Total: <span id="detail-total">₹0.00</span></p>
+        <p class="no-tax-note">No tax included in bill.</p>
+        <div class="modal-actions">
+          <button id="detail-close-btn" class="secondary-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+
