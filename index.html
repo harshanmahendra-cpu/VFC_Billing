@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <title>Velan Food Court Billing</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google Fonts for attractive typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -22,6 +29,15 @@
     <main class="app-main">
       <!-- Billing View -->
       <section id="billing-view" class="view active">
+        <section class="billing-graph-section">
+          <div class="graph-card">
+            <div class="graph-header">
+              <h2>Last 7 Days Sales</h2>
+              <span id="graph-period-label" class="graph-period-label"></span>
+            </div>
+            <div id="billing-graph-bars" class="graph-bars"></div>
+          </div>
+        </section>
         <div class="billing-layout">
           <!-- Tables / Takeaway -->
           <aside class="tables-pane">
@@ -186,10 +202,17 @@
       <section id="reports-view" class="view">
         <section class="reports-header">
           <h2>Sales Reports</h2>
-          <div class="report-filters">
-            <button class="pill-btn report-filter-btn active" data-range="today">Today</button>
-            <button class="pill-btn report-filter-btn" data-range="month">This Month</button>
-            <button class="pill-btn report-filter-btn" data-range="year">This Year</button>
+          <div class="report-controls">
+            <div class="report-filters">
+              <button class="pill-btn report-filter-btn active" data-range="today">Today</button>
+              <button class="pill-btn report-filter-btn" data-range="month">This Month</button>
+              <button class="pill-btn report-filter-btn" data-range="year">This Year</button>
+            </div>
+            <div class="report-date-picker">
+              <label for="report-date">By Date:</label>
+              <input id="report-date" type="date" />
+              <button id="report-date-btn" class="secondary-btn">View</button>
+            </div>
           </div>
         </section>
         <section class="reports-summary" id="reports-summary"></section>
@@ -221,6 +244,13 @@
         <div class="qr-container">
           <!-- Replace src with your UPI/bank static QR image -->
           <img id="qr-image" src="assets/qr-placeholder.png" alt="Payment QR code" />
+        </div>
+        <div class="form-row">
+          <label for="payment-mode">Payment Mode</label>
+          <select id="payment-mode">
+            <option value="cash">Cash</option>
+            <option value="upi">UPI / Card</option>
+          </select>
         </div>
         <div class="modal-actions">
           <button id="qr-paid-btn" class="primary-btn">Payment Received</button>

@@ -77,57 +77,51 @@ function seedDefaultMenu() {
       name: "Chicken Biryani",
       category: "Biryani",
       price: 150,
-      imagePath:
-        "https://images.pexels.com/photos/11178657/pexels-photo-11178657.jpeg?auto=compress&cs=tinysrgb&w=600",
+      // Download a biryani image from an open-source site (e.g. Pexels/Unsplash)
+      // and save it as assets/chicken-biryani.jpg
+      imagePath: "assets/chicken-biryani.jpg",
     },
     {
       name: "Chilly Chicken",
       category: "Side",
       price: 130,
-      imagePath:
-        "https://images.pexels.com/photos/60616/chicken-meatballs-meatball-poultry-60616.jpeg?auto=compress&cs=tinysrgb&w=600",
+      imagePath: "assets/chilly-chicken.jpg",
     },
     {
       name: "Egg Rice",
       category: "Rice",
       price: 90,
-      imagePath:
-        "https://images.pexels.com/photos/12737656/pexels-photo-12737656.jpeg?auto=compress&cs=tinysrgb&w=600",
+      imagePath: "assets/egg-rice.jpg",
     },
     {
       name: "Chicken Rice",
       category: "Rice",
       price: 120,
-      imagePath:
-        "https://images.pexels.com/photos/1234535/pexels-photo-1234535.jpeg?auto=compress&cs=tinysrgb&w=600",
+      imagePath: "assets/chicken-rice.jpg",
     },
     {
       name: "Soda",
       category: "Drink",
       price: 30,
-      imagePath:
-        "https://images.pexels.com/photos/248077/pexels-photo-248077.jpeg?auto=compress&cs=tinysrgb&w=600",
+      imagePath: "assets/soda.jpg",
     },
     {
       name: "Empty Biryani",
       category: "Biryani",
       price: 80,
-      imagePath:
-        "https://images.pexels.com/photos/12737647/pexels-photo-12737647.jpeg?auto=compress&cs=tinysrgb&w=600",
+      imagePath: "assets/empty-biryani.jpg",
     },
     {
       name: "Egg Biryani",
       category: "Biryani",
       price: 120,
-      imagePath:
-        "https://images.pexels.com/photos/1310777/pexels-photo-1310777.jpeg?auto=compress&cs=tinysrgb&w=600",
+      imagePath: "assets/egg-biryani.jpg",
     },
     {
       name: "Biryani Combo",
       category: "Combo",
       price: 220,
-      imagePath:
-        "https://images.pexels.com/photos/4623973/pexels-photo-4623973.jpeg?auto=compress&cs=tinysrgb&w=600",
+      imagePath: "assets/biryani-combo.jpg",
     },
   ];
 
@@ -432,6 +426,22 @@ function markCurrentBillPaid() {
     alert("No items in bill.");
     return;
   }
+  const paymentModeSelect = $("#payment-mode");
+  const mode = paymentModeSelect ? paymentModeSelect.value : "cash";
+
+  if (mode !== "cash") {
+    // For non-cash, just clear the open bill without recording in reports
+    const ok = confirm(
+      "Only cash payments are recorded in reports. Clear this bill without saving?"
+    );
+    if (!ok) return;
+    state.openBills = state.openBills.filter((b) => b.id !== bill.id);
+    persistState();
+    closeQrModal();
+    renderCart();
+    return;
+  }
+
   const now = new Date();
   const billNumber = generateBillNumber(now);
   const total = calculateBillTotal(bill);
@@ -454,7 +464,8 @@ function markCurrentBillPaid() {
   closeQrModal();
   alert(`Payment recorded. Bill #${billNumber}`);
   renderCart();
-  renderReports(currentReportRange);
+  renderReports(currentReportRange, reportSpecificDate);
+  renderBillingGraph();
 }
 
 // Print
@@ -820,12 +831,18 @@ function renderAdminTables() {
 // Reports
 
 let currentReportRange = "today";
+let reportSpecificDate = null;
 
-function getDateRange(rangeType) {
-  const now = new Date();
+function getDateRange(rangeType, specificDate) {
+  const now = specificDate ? new Date(specificDate) : new Date();
   if (rangeType === "month") {
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    return { start, end };
+  }
+  if (rangeType === "day") {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
     return { start, end };
   }
   if (rangeType === "year") {
@@ -833,15 +850,18 @@ function getDateRange(rangeType) {
     const end = new Date(now.getFullYear() + 1, 0, 1);
     return { start, end };
   }
-  // today
+  // today (default)
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   return { start, end };
 }
 
-function renderReports(rangeType = "today") {
+function renderReports(rangeType = "today", specificDate = null) {
   currentReportRange = rangeType;
-  const { start, end } = getDateRange(rangeType);
+  if (specificDate) {
+    reportSpecificDate = specificDate;
+  }
+  const { start, end } = getDateRange(rangeType, reportSpecificDate);
 
   const filtered = state.sales.filter((s) => {
     const d = new Date(s.dateTime);
@@ -926,6 +946,11 @@ function renderReports(rangeType = "today") {
     const range = btn.getAttribute("data-range");
     btn.classList.toggle("active", range === rangeType);
   });
+
+  const dateInput = $("#report-date");
+  if (dateInput && rangeType === "day" && reportSpecificDate) {
+    dateInput.value = reportSpecificDate;
+  }
 }
 
 function openReportDetailModal(billNumber) {
@@ -980,7 +1005,8 @@ function deleteReportRecord(billNumber) {
   if (!ok) return;
   state.sales = state.sales.filter((s) => s.billNumber !== billNumber);
   persistState();
-  renderReports(currentReportRange);
+  renderReports(currentReportRange, reportSpecificDate);
+  renderBillingGraph();
 }
 
 // Navigation
@@ -1042,7 +1068,12 @@ function setupReportFilters() {
   $all(".report-filter-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const range = btn.getAttribute("data-range") || "today";
-      renderReports(range);
+      renderReports(range, null);
+      if (range !== "day") {
+        reportSpecificDate = null;
+        const dateInput = $("#report-date");
+        if (dateInput) dateInput.value = "";
+      }
     });
   });
 
@@ -1050,6 +1081,89 @@ function setupReportFilters() {
   if (detailCloseBtn) {
     detailCloseBtn.addEventListener("click", closeReportDetailModal);
   }
+
+  const dateBtn = $("#report-date-btn");
+  if (dateBtn) {
+    dateBtn.addEventListener("click", () => {
+      const input = $("#report-date");
+      if (!input || !input.value) {
+        alert("Select a date to view reports.");
+        return;
+      }
+      reportSpecificDate = input.value;
+      renderReports("day", reportSpecificDate);
+    });
+  }
+}
+
+// Billing graph (last 7 days) on billing view
+
+function getSalesByDateLastNDays(days) {
+  const now = new Date();
+  const map = new Map();
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const d = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - i
+    );
+    const key = d.toISOString().slice(0, 10);
+    map.set(key, 0);
+  }
+  state.sales.forEach((rec) => {
+    const d = new Date(rec.dateTime);
+    const key = d.toISOString().slice(0, 10);
+    if (map.has(key)) {
+      map.set(key, map.get(key) + rec.total);
+    }
+  });
+  return Array.from(map.entries()).map(([date, total]) => ({
+    date,
+    total,
+  }));
+}
+
+function renderBillingGraph() {
+  const barsContainer = $("#billing-graph-bars");
+  const periodLabel = $("#graph-period-label");
+  if (!barsContainer || !periodLabel) return;
+
+  const data = getSalesByDateLastNDays(7);
+  const max = data.reduce((m, d) => (d.total > m ? d.total : m), 0);
+  barsContainer.innerHTML = "";
+
+  if (!data.length) {
+    periodLabel.textContent = "";
+    return;
+  }
+
+  const first = data[0].date;
+  const last = data[data.length - 1].date;
+  periodLabel.textContent = `${first} to ${last}`;
+
+  data.forEach((d) => {
+    const bar = document.createElement("div");
+    bar.className = "graph-bar";
+
+    const rect = document.createElement("div");
+    rect.className = "graph-bar-rect";
+    const heightPct = max > 0 ? (d.total / max) * 100 : 0;
+    rect.style.height = `${Math.max(heightPct, 5)}%`;
+
+    const value = document.createElement("div");
+    value.className = "graph-bar-value";
+    value.textContent = d.total ? Math.round(d.total).toString() : "";
+
+    const label = document.createElement("div");
+    label.className = "graph-bar-label";
+    // Show day of month only
+    label.textContent = d.date.slice(8, 10);
+
+    bar.appendChild(rect);
+    bar.appendChild(value);
+    bar.appendChild(label);
+    barsContainer.appendChild(bar);
+  });
 }
 
 // Init
@@ -1067,6 +1181,7 @@ function init() {
   renderAdminMenu();
   renderAdminTables();
   renderReports("today");
+   renderBillingGraph();
 }
 
 document.addEventListener("DOMContentLoaded", init);
